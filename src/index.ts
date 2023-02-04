@@ -31,7 +31,7 @@ class Store<TState> {
 	}
 
 	unsubscribe(cb: Subscriber<TState>) {
-		this.subscribers.filter(subscriber => subscriber !== cb);
+		this.subscribers = this.subscribers.filter(subscriber => subscriber !== cb);
 	}
 
 	execute<TPayload = void>(action: Action<TState, TPayload>, payload?: TPayload): TState {
