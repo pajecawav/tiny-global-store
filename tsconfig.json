@@ -10,7 +10,8 @@
 		"noImplicitAny": true,
 		"allowJs": false,
 		"incremental": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"types": ["vitest/globals"]
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules", "dist"]
