@@ -1,9 +1,20 @@
 import { useSyncExternalStore } from "react";
+import { IfVoid, IsUnknown } from "./helpers";
 
 type Subscriber<TState> = (state: TState) => void;
 
-// TODO: actions should take a payload as a second argument
-type Action<TState> = (state: TState) => TState;
+type Action<TState, TPayload = void> = IsUnknown<
+	TPayload,
+	(state: TState) => TState,
+	(state: TState, payload: TPayload) => TState
+>;
+
+type InferPayload<TAction extends Action<any, any>> = TAction extends Action<
+	infer State,
+	infer Payload
+>
+	? Payload
+	: never;
 
 class Store<TState> {
 	private subscribers: Subscriber<TState>[] = [];
@@ -23,10 +34,11 @@ class Store<TState> {
 		this.subscribers.filter(subscriber => subscriber !== cb);
 	}
 
-	execute(action: Action<TState>): TState {
+	execute<TPayload = void>(action: Action<TState, TPayload>, payload?: TPayload): TState {
 		const prevState = this.state;
 
-		this.state = action(this.state);
+		// TODO: figure out how to properly type actions and this function to avoid casting to any
+		this.state = action(this.state, payload as any);
 
 		if (this.state !== prevState) {
 			this.notify();
@@ -46,7 +58,15 @@ export function createStore<TState>(state: TState): Store<TState> {
 	return new Store(state);
 }
 
-type ActionsMap<TState> = Record<string, Action<TState>>;
+type ActionsMap<TState> = Record<string, Action<TState, any>>;
+
+type WrappedActionsMap<TState, TActions extends ActionsMap<TState>> = {
+	[Key in keyof TActions]: IfVoid<
+		InferPayload<TActions[Key]>,
+		() => TState,
+		(payload: InferPayload<TActions[Key]>) => TState
+	>;
+};
 
 export function createHook<TState, TActions extends ActionsMap<TState>>(
 	store: Store<TState>,
@@ -60,9 +80,11 @@ export function createHook<TState, TActions extends ActionsMap<TState>>(
 		return store.get();
 	}
 
-	const wrappedActions: { [Key in keyof TActions]: () => TState } = {} as any;
+	const wrappedActions: WrappedActionsMap<TState, TActions> = {} as any;
 	for (const [name, action] of Object.entries(actions ?? {})) {
-		wrappedActions[name as keyof TActions] = () => store.execute(action);
+		// TODO: figure out how to get rid of `any`
+		const handler: any = (payload: any) => store.execute(action, payload);
+		wrappedActions[name as keyof TActions] = handler;
 	}
 
 	return () => {
