@@ -1,18 +1,27 @@
 {
 	"name": "tiny-global-store",
 	"version": "0.1.0",
-	"main": "dist/index.cjs.js",
-	"module": "dist/index.esm.js",
-	"typings": "dist/index.d.ts",
+	"description": "Tiny state management library for you React application.",
+	"keywords": [
+		"react",
+		"state",
+		"manager",
+		"management",
+		"store"
+	],
 	"repository": "https://github.com/pajecawav/tiny-global-store.git",
 	"bugs": "https://github.com/pajecawav/tiny-global-store/issues",
 	"homepage": "https://github.com/pajecawav/tiny-global-store#readme",
+	"main": "dist/index.cjs.js",
+	"module": "dist/index.esm.js",
+	"typings": "dist/index.d.ts",
 	"files": [
 		"dist/*.js",
 		"dist/*.js.map",
 		"dist/*.d.ts"
 	],
 	"license": "MIT",
+	"sideEffects": false,
 	"scripts": {
 		"build": "run-p -l build:*",
 		"build:cjs": "swc ./src/index.ts -o dist/index.cjs.js -C module.type=commonjs",
